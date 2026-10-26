@@ -8,8 +8,6 @@ setWorkerUrl(workerUrl);
 const map = new Map({
   container: "map",
   style: "https://demotiles.maplibre.org/style.json",
-  center: [19.0, -33.5],
-  zoom: 2,
+  center: [19.34, -33.42],
+  zoom: 7.2,
 });
-
-console.log("map object created", map);
