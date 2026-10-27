@@ -1,5 +1,5 @@
 import "./style.css";
-import { Map, setWorkerUrl } from "maplibre-gl";
+import { Map, Popup, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
@@ -44,5 +44,27 @@ map.on("load", () => {
       "line-color": "#333333",
       "line-width": 1,
     },
+  });
+
+  map.on("click", (e) => {
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ["units-fill"],
+    });
+
+    if (features.length === 0) {
+      return;
+    }
+
+    const name = features[0].properties?.name;
+
+    new Popup().setLngLat(e.lngLat).setText(name).addTo(map);
+  });
+
+  map.on("mouseenter", "units-fill", () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+
+  map.on("mouseleave", "units-fill", () => {
+    map.getCanvas().style.cursor = "";
   });
 });
