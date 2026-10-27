@@ -5,6 +5,47 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
 setWorkerUrl(workerUrl);
 
+function addRow(parent: HTMLElement, label: string, value: unknown): void {
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  const row = document.createElement("p");
+
+  const labelElement = document.createElement("strong");
+  labelElement.textContent = `${label}: `;
+
+  row.appendChild(labelElement);
+  row.appendChild(document.createTextNode(String(value)));
+  parent.appendChild(row);
+}
+
+function buildPopupContent(properties: Record<string, unknown>): HTMLElement {
+  const container = document.createElement("div");
+
+  const title = document.createElement("h3");
+  title.textContent = String(properties.name ?? "Unnamed unit");
+  container.appendChild(title);
+
+  addRow(container, "Age", properties.age);
+
+  const ageTop = properties.best_age_top;
+  const ageBottom = properties.best_age_bottom;
+  if (typeof ageTop === "number" && typeof ageBottom === "number") {
+    addRow(
+      container,
+      "Age range",
+      `${ageBottom} to ${ageTop} million years ago`,
+    );
+  }
+
+  addRow(container, "Lithology", properties.lith);
+  addRow(container, "Description", properties.descrip);
+  addRow(container, "Comments", properties.comments);
+
+  return container;
+}
+
 const map = new Map({
   container: "map",
   style: "https://demotiles.maplibre.org/style.json",
@@ -55,9 +96,12 @@ map.on("load", () => {
       return;
     }
 
-    const name = features[0].properties?.name;
+    const properties = features[0].properties ?? {};
 
-    new Popup().setLngLat(e.lngLat).setText(name).addTo(map);
+    new Popup()
+      .setLngLat(e.lngLat)
+      .setDOMContent(buildPopupContent(properties))
+      .addTo(map);
   });
 
   map.on("mouseenter", "units-fill", () => {
