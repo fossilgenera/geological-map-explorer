@@ -2,6 +2,7 @@ import "./style.css";
 import { Map, Popup, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import { PERIODS } from "./timescale";
 
 setWorkerUrl(workerUrl);
 
@@ -42,8 +43,26 @@ function buildPopupContent(properties: Record<string, unknown>): HTMLElement {
   addRow(container, "Lithology", properties.lith);
   addRow(container, "Description", properties.descrip);
   addRow(container, "Comments", properties.comments);
+  const sourceHeading = document.createElement("h4");
+  sourceHeading.textContent = "Source map";
+  container.appendChild(sourceHeading);
+
+  addRow(container, "Title", properties.ref_title);
+  addRow(container, "Author", properties.ref_authors);
+  addRow(container, "Year", properties.ref_year);
+  addRow(container, "Reference source", properties.ref_source);
 
   return container;
+}
+
+function applyAgeFilter(map: Map, minMa: number, maxMa: number): void {
+  map.setFilter("units-fill", [
+    "all",
+    ["==", ["typeof", ["get", "best_age_top"]], "number"],
+    ["==", ["typeof", ["get", "best_age_bottom"]], "number"],
+    ["<=", ["get", "best_age_top"], maxMa],
+    [">=", ["get", "best_age_bottom"], minMa],
+  ]);
 }
 
 const map = new Map({
@@ -75,6 +94,71 @@ map.on("load", () => {
       "fill-opacity": 0.7,
     },
   });
+
+  const minInput = document.getElementById("age-min") as HTMLInputElement;
+  const maxInput = document.getElementById("age-max") as HTMLInputElement;
+  const applyButton = document.getElementById("age-apply") as HTMLButtonElement;
+  const status = document.getElementById("age-status") as HTMLParagraphElement;
+
+  const applyFromInputs = (): void => {
+    const minMa = minInput.valueAsNumber;
+    const maxMa = maxInput.valueAsNumber;
+
+    if (Number.isNaN(minMa) || Number.isNaN(maxMa)) {
+      status.textContent = "Enter a number in both boxes. Filter unchanged.";
+      return;
+    }
+    if (minMa > maxMa) {
+      status.textContent =
+        "The younger limit must not be larger than the older limit. Filter unchanged.";
+      return;
+    }
+
+    applyAgeFilter(map, minMa, maxMa);
+    status.textContent = `Showing units whose age overlaps ${minMa} to ${maxMa} Ma. Units with no age are hidden.`;
+  };
+
+  applyButton.addEventListener("click", applyFromInputs);
+  applyFromInputs();
+
+  const clearButton = document.getElementById("age-clear") as HTMLButtonElement;
+
+  clearButton.addEventListener("click", () => {
+    map.setFilter("units-fill", null);
+    status.textContent = "Showing all units, including units with no age.";
+  });
+
+  const periodSelect = document.getElementById(
+    "age-period",
+  ) as HTMLSelectElement;
+
+  const customOption = document.createElement("option");
+  customOption.value = "";
+  customOption.textContent = "Custom range";
+  periodSelect.appendChild(customOption);
+
+  PERIODS.forEach((period) => {
+    const option = document.createElement("option");
+    option.value = period.name;
+    option.textContent = period.name;
+    periodSelect.appendChild(option);
+  });
+
+  periodSelect.addEventListener("change", () => {
+    const period = PERIODS.find((p) => p.name === periodSelect.value);
+    if (period === undefined) {
+      return;
+    }
+    minInput.value = String(period.youngerMa);
+    maxInput.value = String(period.olderMa);
+    applyFromInputs();
+  });
+
+  const markCustomRange = (): void => {
+    periodSelect.value = "";
+  };
+  minInput.addEventListener("input", markCustomRange);
+  maxInput.addEventListener("input", markCustomRange);
 
   map.addLayer({
     id: "lines-stroke",

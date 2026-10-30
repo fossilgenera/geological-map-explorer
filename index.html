@@ -8,6 +8,18 @@
   </head>
   <body>
     <div id="map"></div>
+    <div id="age-filter">
+      <h2>Filter by age</h2>
+      <label for="age-period">Geological period</label>
+      <select id="age-period"></select>
+      <label for="age-min">Younger limit (Ma)</label>
+      <input id="age-min" type="number" min="0" step="any" value="400" />
+      <label for="age-max">Older limit (Ma)</label>
+      <input id="age-max" type="number" min="0" step="any" value="500" />
+      <button id="age-apply" type="button">Apply</button>
+      <button id="age-clear" type="button">Show all</button>
+      <p id="age-status" aria-live="polite"></p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
