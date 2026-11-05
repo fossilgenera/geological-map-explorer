@@ -4,6 +4,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { PERIODS } from "./timescale";
 
+const BASEMAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+
+const UNITS_BEFORE_LAYER_ID = "aeroway_fill";
+const LINES_BEFORE_LAYER_ID = "waterway_line_label";
+
 setWorkerUrl(workerUrl);
 
 function addRow(parent: HTMLElement, label: string, value: unknown): void {
@@ -67,7 +72,7 @@ function applyAgeFilter(map: Map, minMa: number, maxMa: number): void {
 
 const map = new Map({
   container: "map",
-  style: "https://demotiles.maplibre.org/style.json",
+  style: BASEMAP_STYLE_URL,
   center: [19.34, -33.42],
   zoom: 7.2,
 });
@@ -84,16 +89,19 @@ map.on("load", () => {
       "original map sources per unit",
   });
 
-  map.addLayer({
-    id: "units-fill",
-    type: "fill",
-    source: "macrostrat",
-    "source-layer": "units",
-    paint: {
-      "fill-color": ["get", "color"],
-      "fill-opacity": 0.7,
+  map.addLayer(
+    {
+      id: "units-fill",
+      type: "fill",
+      source: "macrostrat",
+      "source-layer": "units",
+      paint: {
+        "fill-color": ["get", "color"],
+        "fill-opacity": 0.7,
+      },
     },
-  });
+    UNITS_BEFORE_LAYER_ID,
+  );
 
   const minInput = document.getElementById("age-min") as HTMLInputElement;
   const maxInput = document.getElementById("age-max") as HTMLInputElement;
@@ -160,16 +168,41 @@ map.on("load", () => {
   minInput.addEventListener("input", markCustomRange);
   maxInput.addEventListener("input", markCustomRange);
 
-  map.addLayer({
-    id: "lines-stroke",
-    type: "line",
-    source: "macrostrat",
-    "source-layer": "lines",
-    paint: {
-      "line-color": "#333333",
-      "line-width": 1,
-    },
+  const currentSource = document.getElementById(
+    "current-source",
+  ) as HTMLParagraphElement;
+
+  map.on("idle", () => {
+    const centre = map.project(map.getCenter());
+    const features = map.queryRenderedFeatures(centre, {
+      layers: ["units-fill"],
+    });
+
+    if (features.length === 0) {
+      currentSource.textContent = "No unit is drawn at the centre of the view.";
+      return;
+    }
+
+    const title = features[0].properties?.ref_title;
+    currentSource.textContent =
+      typeof title === "string" && title !== ""
+        ? title
+        : "No source map is recorded for this unit.";
   });
+
+  map.addLayer(
+    {
+      id: "lines-stroke",
+      type: "line",
+      source: "macrostrat",
+      "source-layer": "lines",
+      paint: {
+        "line-color": "#333333",
+        "line-width": 1,
+      },
+    },
+    LINES_BEFORE_LAYER_ID,
+  );
 
   map.on("click", (e) => {
     const features = map.queryRenderedFeatures(e.point, {

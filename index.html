@@ -20,6 +20,46 @@
       <button id="age-clear" type="button">Show all</button>
       <p id="age-status" aria-live="polite"></p>
     </div>
+    <details id="about-data">
+      <summary>About this data</summary>
+      <h2>Source</h2>
+      <p>
+        Geological units come from Macrostrat (carto tile layer), licensed CC BY
+        4.0. Each unit is credited to its original map in the popup.
+      </p>
+      <h2>Scale</h2>
+      <p>
+        The units come from different source maps depending on zoom. The source
+        map under the centre of your view is shown below and changes as you
+        zoom. Zooming in further only enlarges the shapes. It does not add
+        detail.
+      </p>
+      <h2>Source map at the centre of the view.</h2>
+      <p id="current-source">Waiting for the map to load.</p>
+      <h2>Limitations</h2>
+      <ul>
+        <li>Ages are in millions of years ago (Ma).</li>
+        <li>
+          The rock type field was empty on every unit we clicked, so rock type
+          is shown only as the description text.
+        </li>
+        <li>
+          The age filter shows a unit if its age span overlaps your range. Units
+          with no age are hidden by the filter.
+        </li>
+        <li>
+          Age text can be a regional term, such as Namibian, that is not on the
+          international time scale. When it cannot be matched to a precise
+          interval, the numeric age range can span a whole era, for example the
+          Neoproterozoic, 1000 to 538.8 million years ago. That range is not a
+          measured age.
+        </li>
+        <li>
+          The background map is OpenFreeMap, built from OpenStreetMap data. It
+          is a free public service with no guarantee of continuity.
+        </li>
+      </ul>
+    </details>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -50,3 +50,31 @@ body {
 #age-filter button + button {
   margin-left: 6px;
 }
+
+#about-data {
+  position: absolute;
+  bottom: 24px;
+  left: 12px;
+  max-width: 320px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  font-family: sans-serif;
+  font-size: 13px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+#about-data summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#about-data h2 {
+  font-size: 14px;
+  margin: 12px 0 4px;
+}
+
+#about-data p,
+#about-data ul {
+  margin: 0;
+}
